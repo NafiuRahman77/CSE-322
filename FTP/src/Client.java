@@ -3,6 +3,7 @@ import java.awt.*;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -186,38 +187,72 @@ public class Client {
                 } else {
                     System.out.println(uploadmsg);
                     int chunkSize = (int) in.readObject();
+                    System.out.println("Chunk size is " + chunkSize);
                     String clientId = (String) in.readObject();
                     int fileCount = (int) in.readObject();
                     int bytesRead = 0;
                     File file = new File("src/files/" + tempfile);
-                    FileInputStream fileInputStream = new FileInputStream(file);
-
-                    byte[] buffer = new byte[chunkSize];
-                    socket.setSoTimeout(30000);
+                    //FileInputStream fileInputStream = new FileInputStream(file);
+                    //socket.setSoTimeout(30000);
+                    int flag = 0;
 
                     try {
+                        byte[] data = Files.readAllBytes(file.toPath());
+                        //byte[] buffer = new byte[chunkSize];
+                        // chunkSize = 500;
+                        long chunk_no = length / chunkSize + 1;
+                        int offset = 0;
 
-                        long totalBytesSent = 0;
-
-                        while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                            bos.write(buffer, 0, bytesRead);
-                            bos.flush();
+                        for (int i = 0; i < chunk_no - 1; i++) {
+                            byte[] buffer = new byte[chunkSize];
+                            // Send the buffer to the server
+                            if (flag == 1) {
+                                continue;
+                            }
+                            for (int j = 0; j < chunkSize; j++) {
+                                if (offset < data.length) {
+                                    buffer[j] = data[offset++];
+                                } else {
+                                    break;
+                                }
+                            }
+                            out.writeObject(buffer);
+                            socket.setSoTimeout(5000);
+                            String conf = (String) in.readObject();
+                            if (!conf.equalsIgnoreCase("ok")) {
+                                flag = 1;
+                            }
+                            socket.setSoTimeout(0);
 
                         }
+                        if (flag == 0) {
+                            int remainingBytes = data.length - offset;
+                            byte[] buffer = new byte[remainingBytes];
+                            System.arraycopy(data, offset, buffer, 0, remainingBytes);
+                            out.writeObject(buffer);
+                        }
 
-                        fileInputStream.close();
-                        // bos.close();
 
                     } catch (SocketTimeoutException e) {
+                        // e.printStackTrace();
+                        flag = 1;
+                        System.out.println("Interrupted");
+                        out.writeObject("File upload interrupted");
+                        socket.setSoTimeout(0);
+                    }
 
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                    if (flag == 0) {
+                        out.writeObject("File upload done");
+                        socket.setSoTimeout(0);
+                    } else {
+                        System.out.println((String) in.readObject());
+                        out.writeObject("Delete file");
+                        socket.setSoTimeout(0);
                     }
                 }
-            }
-            else if(option.equalsIgnoreCase("8")){
+            } else if (option.equalsIgnoreCase("8")) {
                 System.out.println("Enter request id");
-                String reqId=sc.nextLine();
+                String reqId = sc.nextLine();
                 out.writeObject(reqId);
                 System.out.println("Input file name from the files folder");
                 String tempfile = sc.nextLine();
@@ -248,32 +283,66 @@ public class Client {
                     int fileCount = (int) in.readObject();
                     int bytesRead = 0;
                     File file = new File("src/files/" + tempfile);
-                    FileInputStream fileInputStream = new FileInputStream(file);
-
-                    byte[] buffer = new byte[chunkSize];
-                    socket.setSoTimeout(4000);
+                    //FileInputStream fileInputStream = new FileInputStream(file);
+                    int flag = 0;
 
                     try {
+                        byte[] data = Files.readAllBytes(file.toPath());
+                        //byte[] buffer = new byte[chunkSize];
+                        // chunkSize = 500;
+                        long chunk_no = length / chunkSize + 1;
+                        int offset = 0;
 
-                        long totalBytesSent = 0;
-
-                        while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                            bos.write(buffer, 0, bytesRead);
-                            bos.flush();
+                        for (int i = 0; i < chunk_no - 1; i++) {
+                            byte[] buffer = new byte[chunkSize];
+                            // Send the buffer to the server
+                            if (flag == 1) {
+                                continue;
+                            }
+                            for (int j = 0; j < chunkSize; j++) {
+                                if (offset < data.length) {
+                                    buffer[j] = data[offset++];
+                                } else {
+                                    break;
+                                }
+                            }
+                            out.writeObject(buffer);
+                            socket.setSoTimeout(5000);
+                            String conf = (String) in.readObject();
+                            if (!conf.equalsIgnoreCase("ok")) {
+                                flag = 1;
+                            }
+                            socket.setSoTimeout(0);
 
                         }
+                        if (flag == 0) {
+                            int remainingBytes = data.length - offset;
+                            byte[] buffer = new byte[remainingBytes];
+                            System.arraycopy(data, offset, buffer, 0, remainingBytes);
+                            out.writeObject(buffer);
+                        }
 
-                        fileInputStream.close();
-                        // bos.close();
 
                     } catch (SocketTimeoutException e) {
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        // e.printStackTrace();
+                        flag = 1;
+                        System.out.println("Interrupted");
+                        out.writeObject("File upload interrupted");
+                        socket.setSoTimeout(0);
                     }
+
+                    if (flag == 0) {
+                        out.writeObject("File upload done");
+                        socket.setSoTimeout(0);
+                    } else {
+                        System.out.println((String) in.readObject());
+                        out.writeObject("Delete file");
+                        socket.setSoTimeout(0);
+                    }
+
+
                 }
-            }
-            else if(option.equalsIgnoreCase("9")){
+            } else if (option.equalsIgnoreCase("9")) {
 
                 in.close();
                 out.close();

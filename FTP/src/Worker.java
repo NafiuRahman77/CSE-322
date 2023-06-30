@@ -4,6 +4,9 @@ import java.io.*;
 import java.lang.reflect.Array;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -35,8 +38,8 @@ public class Worker extends Thread {
                     File studentPublic = new File("src/com/company/" + client_id + "/public");
                     studentPrivate.mkdirs();
                     studentPublic.mkdirs();
-                    ArrayList<String> a=new ArrayList<>();
-                    Server.inbox.put(client_id,a);
+                    ArrayList<String> a = new ArrayList<>();
+                    Server.inbox.put(client_id, a);
                     Server.getLoggedinClient().add(client_id);
                 }
                 System.out.println("login successful by client id-" + client_id);
@@ -173,7 +176,7 @@ public class Worker extends Thread {
                         if (client_id != c) {
                             ArrayList<String> a = Server.inbox.get(c);
                             a.add(msg);
-                            Server.inbox.replace(c,a);
+                            Server.inbox.replace(c, a);
                         }
                     }
 
@@ -201,36 +204,89 @@ public class Worker extends Thread {
                         out.writeObject(Server.fileCount);
                         String currentFile = "src/com/company/" + client_id + "/" + fileType + "/" + fileName;
                         System.out.println(currentFile);
-                        FileOutputStream fileOutputStream = new FileOutputStream("src/com/company/" + client_id + "/" + fileType + "/" + fileName);
+                        //FileOutputStream fileOutputStream = new FileOutputStream("src/com/company/" + client_id + "/" + fileType + "/" + fileName);
 
                         byte[] buffer = new byte[chunkSize];
                         int fileSize = (int) filesize;
                         int bytesRead = 0;
                         int bytes_sum = 0;
                         int chunkcount = 0;
+                        // ... existing code ...
+                        File downfile=new File(currentFile);
+
                         try {
-                            long totalBytesReceived = 0;
-                            boolean filesuccess = true;
-                            while (fileSize > 0) {
-                                bytesRead = bis.read(buffer, 0, (int) Math.min(buffer.length, fileSize));
-                                if (bytesRead == -1) {
+                            //chunkSize=500;
+                            long chunk_no=filesize/chunkSize +1;
+                            int flagg=1;
+
+                            downfile.createNewFile();
+                            for (int i = 0; i < chunk_no - 1; i++) {
+
+                                Object o =  in.readObject();
+                                if(o instanceof byte[] ){
+                                    buffer = (byte[]) o;
+                                    // Write the buffer to the file
+                                    Files.write(Paths.get(downfile.getAbsolutePath()), buffer, StandardOpenOption.APPEND);
+
+                                    // Send acknowledgment to the client
+                                    out.writeObject("ok");
+                                }
+
+                                else{
+                                    System.out.println("bop"+(String)o);
+                                    flagg=0;
                                     break;
                                 }
-                                fileOutputStream.write(buffer, 0, bytesRead);
-                                fileSize -= bytesRead;
-                                bytes_sum += bytesRead;
+//                                if(i==2) {
+//                                    Thread.sleep(7000);
+//                                }
 
                             }
-                            fileOutputStream.close();
+                            if(flagg==1) {
+                                buffer = (byte[]) in.readObject();
+                                Files.write(Paths.get(downfile.getAbsolutePath()), buffer, StandardOpenOption.APPEND);
 
+                            }
 
-                        } catch (IOException e) {
+                            String clientMessage = (String) in.readObject();
+                            System.out.println(clientMessage);
+
+                            if (clientMessage.equalsIgnoreCase("Delete file")) {
+                                // Delete the file on the server
+                                boolean deleted = downfile.delete();
+                                if (deleted) {
+                                    System.out.println("File deleted on the server");
+                                } else {
+                                    System.out.println("Failed to delete the file on the server");
+                                }
+                            } else if(downfile.length()!=fileSize){
+                                boolean deleted = downfile.delete();
+                                if (deleted) {
+                                    System.out.println("File deleted on the server for disconnect");
+                                } else {
+                                    System.out.println("Failed to delete the file on the server for disconnect");
+                                }
+                            }else {
+                                // Handle other client messages if needed
+                                System.out.println(clientMessage);
+                            }
+                        } catch(SocketException e){
+                            if(downfile.length()!=fileSize){
+                                boolean deleted = downfile.delete();
+                                if (deleted) {
+                                    System.out.println("File deleted on the server for disconnect");
+                                } else {
+                                    System.out.println("Failed to delete the file on the server for disconnect");
+                                }
+                            }
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
+
                     }
                 } else if (option.equalsIgnoreCase("8")) {
-                    String rid= (String) in.readObject();
-                    int reqId= Integer.parseInt(rid);
+                    String rid = (String) in.readObject();
+                    int reqId = Integer.parseInt(rid);
                     String fileName = (String) in.readObject();
                     long filesize = (long) in.readObject();
                     String fileType = (String) in.readObject();
@@ -253,34 +309,86 @@ public class Worker extends Thread {
                         int bytesRead = 0;
                         int bytes_sum = 0;
                         int chunkcount = 0;
+                        File downfile=new File(currentFile);
+
                         try {
-                            long totalBytesReceived = 0;
-                            boolean filesuccess = true;
-                            while (fileSize > 0) {
-                                bytesRead = bis.read(buffer, 0, (int) Math.min(buffer.length, fileSize));
-                                if (bytesRead == -1) {
+                            //chunkSize=500;
+                            long chunk_no=filesize/chunkSize +1;
+                            int flagg=1;
+
+                            downfile.createNewFile();
+                            for (int i = 0; i < chunk_no - 1; i++) {
+
+                                Object o =  in.readObject();
+                                if(o instanceof byte[] ){
+                                    buffer = (byte[]) o;
+                                    // Write the buffer to the file
+                                    Files.write(Paths.get(downfile.getAbsolutePath()), buffer, StandardOpenOption.APPEND);
+
+                                    // Send acknowledgment to the client
+                                    out.writeObject("ok");
+                                }
+
+                                else{
+                                    System.out.println("bop"+(String)o);
+                                    flagg=0;
                                     break;
                                 }
-                                fileOutputStream.write(buffer, 0, bytesRead);
-                                fileSize -= bytesRead;
-                                bytes_sum += bytesRead;
+//                                if(i==2) {
+//                                    Thread.sleep(7000);
+//                                }
 
                             }
-                            fileOutputStream.close();
+                            if(flagg==1) {
+                                buffer = (byte[]) in.readObject();
+                                Files.write(Paths.get(downfile.getAbsolutePath()), buffer, StandardOpenOption.APPEND);
 
-                            for(int i=0;i<Server.getFileRequests().size();i++){
-                                Request r=Server.getFileRequests().get(i);
-                                if(r.requestCount==reqId){
-                                    ArrayList<String> a = Server.inbox.get(r.client_id);
-                                    a.add(r.fileName+" is uploaded by "+client_id+" check his public folder");
-                                    Server.inbox.replace(r.client_id,a);
+                            }
+
+                            String clientMessage = (String) in.readObject();
+                            System.out.println(clientMessage);
+
+                            if (clientMessage.equalsIgnoreCase("Delete file")) {
+                                // Delete the file on the server
+                                boolean deleted = downfile.delete();
+                                if (deleted) {
+                                    System.out.println("File deleted on the server");
+                                } else {
+                                    System.out.println("Failed to delete the file on the server");
+                                }
+                            } else if(downfile.length()!=fileSize){
+                                boolean deleted = downfile.delete();
+                                if (deleted) {
+                                    System.out.println("File deleted on the server for disconnect");
+                                } else {
+                                    System.out.println("Failed to delete the file on the server for disconnect");
+                                }
+                            }else {
+                                // Handle other client messages if needed
+                                System.out.println(clientMessage);
+                            }
+                        } catch(SocketException e){
+                            if(downfile.length()!=fileSize){
+                                boolean deleted = downfile.delete();
+                                if (deleted) {
+                                    System.out.println("File deleted on the server for disconnect");
+                                } else {
+                                    System.out.println("Failed to delete the file on the server for disconnect");
                                 }
                             }
-
-
-                        } catch (IOException e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
+
+                        for (int i = 0; i < Server.getFileRequests().size(); i++) {
+                            Request r = Server.getFileRequests().get(i);
+                            if (r.requestCount == reqId) {
+                                ArrayList<String> a = Server.inbox.get(r.client_id);
+                                a.add(r.fileName + " is uploaded by " + client_id + " check his public folder");
+                                Server.inbox.replace(r.client_id, a);
+                            }
+                        }
+
                     }
                 } else if (option.equalsIgnoreCase("9")) {
                     Server.getActiveClient().remove(client_id);
