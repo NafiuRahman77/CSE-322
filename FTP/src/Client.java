@@ -41,7 +41,7 @@ public class Client {
 
         while (true) {
 
-            System.out.println("1. Lookup Clients\t 2. Your Files\t 3.Download Your file\t 4. Lookup a Client's file\t 5. Request File\t 6. View\t 7. Upload\t 8.Upload to a request\t 9. Logout");
+            System.out.println("1. Lookup Clients\t 2. Your Files\t 3.Download Your file\t 4. Download a Client's file\t 5. Request File\t 6. View\t 7. Upload\t 8.Upload to a request\t 9.View a client's file\t 10. Logout");
             String option = sc.nextLine();
             out.writeObject(option);
             if (option.equalsIgnoreCase("1")) {
@@ -190,6 +190,7 @@ public class Client {
                     System.out.println("Chunk size is " + chunkSize);
                     String clientId = (String) in.readObject();
                     int fileCount = (int) in.readObject();
+                    System.out.println("File-id is "+fileCount);
                     int bytesRead = 0;
                     File file = new File("src/files/" + tempfile);
                     //FileInputStream fileInputStream = new FileInputStream(file);
@@ -199,9 +200,10 @@ public class Client {
                     try {
                         byte[] data = Files.readAllBytes(file.toPath());
                         //byte[] buffer = new byte[chunkSize];
-                        // chunkSize = 500;
+                         chunkSize = 500;
                         long chunk_no = length / chunkSize + 1;
                         int offset = 0;
+                        int sum=0;
 
                         for (int i = 0; i < chunk_no - 1; i++) {
                             byte[] buffer = new byte[chunkSize];
@@ -216,13 +218,16 @@ public class Client {
                                     break;
                                 }
                             }
+                            sum+=chunkSize;
                             out.writeObject(buffer);
-                            socket.setSoTimeout(5000);
+                            socket.setSoTimeout(30000);
                             String conf = (String) in.readObject();
+                            System.out.println("sent total of "+ sum+" bytes ");
                             if (!conf.equalsIgnoreCase("ok")) {
                                 flag = 1;
                             }
                             socket.setSoTimeout(0);
+                            Thread.sleep(200);
 
                         }
                         if (flag == 0) {
@@ -230,6 +235,8 @@ public class Client {
                             byte[] buffer = new byte[remainingBytes];
                             System.arraycopy(data, offset, buffer, 0, remainingBytes);
                             out.writeObject(buffer);
+                            sum+=remainingBytes;
+                            System.out.println("sent total of "+ sum+" bytes ");
                         }
 
 
@@ -239,6 +246,8 @@ public class Client {
                         System.out.println("Interrupted");
                         out.writeObject("File upload interrupted");
                         socket.setSoTimeout(0);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
 
                     if (flag == 0) {
@@ -281,6 +290,7 @@ public class Client {
                     int chunkSize = (int) in.readObject();
                     String clientId = (String) in.readObject();
                     int fileCount = (int) in.readObject();
+                    System.out.println("File-id is "+fileCount);
                     int bytesRead = 0;
                     File file = new File("src/files/" + tempfile);
                     //FileInputStream fileInputStream = new FileInputStream(file);
@@ -289,9 +299,10 @@ public class Client {
                     try {
                         byte[] data = Files.readAllBytes(file.toPath());
                         //byte[] buffer = new byte[chunkSize];
-                        // chunkSize = 500;
+                        chunkSize = 200;
                         long chunk_no = length / chunkSize + 1;
                         int offset = 0;
+                        int sum=0;
 
                         for (int i = 0; i < chunk_no - 1; i++) {
                             byte[] buffer = new byte[chunkSize];
@@ -306,20 +317,24 @@ public class Client {
                                     break;
                                 }
                             }
+                            sum+=chunkSize;
                             out.writeObject(buffer);
-                            socket.setSoTimeout(5000);
+                            socket.setSoTimeout(30000);
                             String conf = (String) in.readObject();
+                            System.out.println("sent total of "+ sum+" bytes ");
                             if (!conf.equalsIgnoreCase("ok")) {
                                 flag = 1;
                             }
                             socket.setSoTimeout(0);
-
+                            Thread.sleep(200);
                         }
                         if (flag == 0) {
                             int remainingBytes = data.length - offset;
                             byte[] buffer = new byte[remainingBytes];
                             System.arraycopy(data, offset, buffer, 0, remainingBytes);
                             out.writeObject(buffer);
+                            sum+=remainingBytes;
+                            System.out.println("sent total of "+ sum+" bytes ");
                         }
 
 
@@ -329,6 +344,8 @@ public class Client {
                         System.out.println("Interrupted");
                         out.writeObject("File upload interrupted");
                         socket.setSoTimeout(0);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
 
                     if (flag == 0) {
@@ -343,6 +360,23 @@ public class Client {
 
                 }
             } else if (option.equalsIgnoreCase("9")) {
+                System.out.println("Mention the client ID :");
+                String id = sc.nextLine();
+                out.writeObject(id);
+                String personExistCheck = (String) in.readObject();
+                if (personExistCheck.equals("A person with this id exists")) {
+                    File filesList[] = (File[]) in.readObject();
+                    System.out.println("Public files of client id-" + id + ":");
+                    for (File file : filesList) {
+                        if (file.isFile()) {
+                            System.out.println(file.getName());
+                        }
+                    }
+
+                } else {
+                    System.out.println("No person with this id exists");
+                }
+            }else if (option.equalsIgnoreCase("10")) {
 
                 in.close();
                 out.close();

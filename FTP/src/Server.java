@@ -17,7 +17,7 @@ public class Server {
     private static ArrayList<String> ActiveClient = new ArrayList<>();
     private static ArrayList<Request> fileRequests = new ArrayList<>();
     private static int requestCount=0;
-    public static HashMap<Integer, String> files;
+    public static HashMap<Integer, byte[]> files=new HashMap<>();
     public static Map<String,ArrayList<String>> inbox=new TreeMap<>();
     public static int fileCount=0;
 
