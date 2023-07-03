@@ -413,6 +413,8 @@ public class Worker extends Thread {
 //                                } else {
 //                                    System.out.println("Failed to delete the file on the server for disconnect");
 //                                }
+                                Server.setUsedBuffer(Server.getUsedBuffer()-filesize );
+                                break;
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
