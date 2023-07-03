@@ -247,7 +247,7 @@ public class Worker extends Thread {
                                     flagg=0;
                                     break;
                                 }
-                                //if(i==2){Thread.sleep(7000);}
+                               // if(i==2){Thread.sleep(7000);}
 
                             }
                             if(flagg==1) {
@@ -323,8 +323,6 @@ public class Worker extends Thread {
                         out.writeObject(Server.fileCount);
                         String currentFile = "src/com/company/" + client_id + "/" + fileType + "/" + fileName;
                         System.out.println(currentFile);
-                        FileOutputStream fileOutputStream = new FileOutputStream("src/com/company/" + client_id + "/" + fileType + "/" + fileName);
-
                         byte[] buffer = new byte[chunkSize];
                         int fileSize = (int) filesize;
                         int bytesRead = 0;
@@ -362,7 +360,7 @@ public class Worker extends Thread {
                                     flagg=0;
                                     break;
                                 }
-                                //Thread.sleep(7000);
+                                //if(i==2){Thread.sleep(7000);}
 
                             }
                             if(flagg==1) {
@@ -380,6 +378,7 @@ public class Worker extends Thread {
                                 // Delete the file on the server
                                 Server.files.remove(fileId);
                                 System.out.println("File deleted on the server");
+                                Server.setUsedBuffer(Server.getUsedBuffer()-filesize );
 //                                boolean deleted = downfile.delete();
 //                                if (deleted) {
 //                                    System.out.println("File deleted on the server");
@@ -389,6 +388,7 @@ public class Worker extends Thread {
                             } else if(offset!=fileSize){
                                 Server.files.remove(fileId);
                                 System.out.println("File deleted on the server");
+                                Server.setUsedBuffer(Server.getUsedBuffer()-filesize );
 //                                boolean deleted = downfile.delete();
 //                                if (deleted) {
 //                                    System.out.println("File deleted on the server for disconnect");
@@ -400,6 +400,16 @@ public class Worker extends Thread {
                                 Files.write(Paths.get(downfile.getAbsolutePath()), Server.files.get(fileId));
                                 // Handle other client messages if needed
                                 System.out.println(clientMessage);
+                                Server.setUsedBuffer(Server.getUsedBuffer()-filesize );
+
+                                for (int i = 0; i < Server.getFileRequests().size(); i++) {
+                                    Request r = Server.getFileRequests().get(i);
+                                    if (r.requestCount == reqId) {
+                                        ArrayList<String> a = Server.inbox.get(r.client_id);
+                                        a.add(r.fileName + " is uploaded by " + client_id + " check his public folder");
+                                        Server.inbox.replace(r.client_id, a);
+                                    }
+                                }
                             }
 
 
@@ -414,21 +424,12 @@ public class Worker extends Thread {
 //                                    System.out.println("Failed to delete the file on the server for disconnect");
 //                                }
                                 Server.setUsedBuffer(Server.getUsedBuffer()-filesize );
-                                break;
+
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        Server.setUsedBuffer(Server.getUsedBuffer()-filesize );
 
-                        for (int i = 0; i < Server.getFileRequests().size(); i++) {
-                            Request r = Server.getFileRequests().get(i);
-                            if (r.requestCount == reqId) {
-                                ArrayList<String> a = Server.inbox.get(r.client_id);
-                                a.add(r.fileName + " is uploaded by " + client_id + " check his public folder");
-                                Server.inbox.replace(r.client_id, a);
-                            }
-                        }
 
                     }
                 } else if (option.equalsIgnoreCase("9")) {

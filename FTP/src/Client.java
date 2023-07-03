@@ -327,7 +327,7 @@ public class Client {
                                 flag = 1;
                             }
                             socket.setSoTimeout(0);
-                            Thread.sleep(200);
+                            //Thread.sleep(200);
                         }
                         if (flag == 0) {
                             int remainingBytes = data.length - offset;
@@ -345,8 +345,6 @@ public class Client {
                         System.out.println("Interrupted");
                         out.writeObject("File upload interrupted");
                         socket.setSoTimeout(0);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
                     }
 
                     if (flag == 0) {
