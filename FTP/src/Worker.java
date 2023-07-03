@@ -219,7 +219,7 @@ public class Worker extends Thread {
                         File downfile=new File(currentFile);
 
                         try {
-                            chunkSize=500;
+                            //chunkSize=500;
                             long chunk_no=filesize/chunkSize +1;
                             int flagg=1;
                             byte[] fileBuffer = new byte[(int) filesize];
@@ -302,6 +302,7 @@ public class Worker extends Thread {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
+                        Server.setUsedBuffer(Server.getUsedBuffer()-filesize );
                     }
                 } else if (option.equalsIgnoreCase("8")) {
                     String rid = (String) in.readObject();
@@ -416,6 +417,7 @@ public class Worker extends Thread {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
+                        Server.setUsedBuffer(Server.getUsedBuffer()-filesize );
 
                         for (int i = 0; i < Server.getFileRequests().size(); i++) {
                             Request r = Server.getFileRequests().get(i);

@@ -200,7 +200,7 @@ public class Client {
                     try {
                         byte[] data = Files.readAllBytes(file.toPath());
                         //byte[] buffer = new byte[chunkSize];
-                         chunkSize = 500;
+                        // chunkSize = 500;
                         long chunk_no = length / chunkSize + 1;
                         int offset = 0;
                         int sum=0;
@@ -227,7 +227,7 @@ public class Client {
                                 flag = 1;
                             }
                             socket.setSoTimeout(0);
-                            Thread.sleep(200);
+                           // Thread.sleep(200);
 
                         }
                         if (flag == 0) {
@@ -246,9 +246,10 @@ public class Client {
                         System.out.println("Interrupted");
                         out.writeObject("File upload interrupted");
                         socket.setSoTimeout(0);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
                     }
+//                    catch (InterruptedException e) {
+//                        throw new RuntimeException(e);
+//                    }
 
                     if (flag == 0) {
                         out.writeObject("File upload done");

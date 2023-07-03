@@ -9,10 +9,10 @@ import java.util.TreeMap;
 
 public class Server {
 
-    private static long MAX_BUFFER_SIZE = 100000;
+    private static long MAX_BUFFER_SIZE = 1000000000;
     private static int MIN_CHUNK_SIZE = 1000;
     private static int MAX_CHUNK_SIZE = 10000;
-    private static long usedBuffer = 0;
+    public static long usedBuffer = 0;
     private static ArrayList<String> LoggedinClient = new ArrayList<>();
     private static ArrayList<String> ActiveClient = new ArrayList<>();
     private static ArrayList<Request> fileRequests = new ArrayList<>();
