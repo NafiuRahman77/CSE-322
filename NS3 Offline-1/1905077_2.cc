@@ -8,6 +8,14 @@
 #include "ns3/flow-monitor-module.h"
 #include "ns3/point-to-point-module.h"
 
+/* topology
+  s -              - r
+  s -              - r
+  s - p0 ------ p1 - r
+  s -              - r
+  s -              - r
+*/
+
 int packetSize=1024;
 int delay=100;
 int txRange=5;

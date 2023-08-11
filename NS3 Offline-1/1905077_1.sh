@@ -25,12 +25,16 @@ node_vs_ratio_png="offline-2-1-output/node-vs-ratio.png"
 node_vs_throughput_script=$(cat << EOL
 set terminal png size 640, 480
 set output "$node_vs_throughput_png"
+set xlabel "Node"
+set ylabel "Throughput (Mbit/s)"
 plot "$node_data_file_name" using 1:2 title "Node vs Throughput" with linespoints
 EOL
 )
 node_vs_ratio_script=$(cat << EOL
 set terminal png size 640, 480
 set output "$node_vs_ratio_png"
+set xlabel "Node"
+set ylabel "Ratio"
 plot "$node_data_file_name" using 1:3 title "Node vs Ratio" with linespoints
 EOL
 )
@@ -63,12 +67,16 @@ flow_vs_ratio_png="offline-2-1-output/flow-vs-ratio.png"
 flow_vs_throughput_script=$(cat << EOL
 set terminal png size 640, 480
 set output "$flow_vs_throughput_png"
+set xlabel "Flow"
+set ylabel "Throughput (Mbit/s)"
 plot "$flow_data_file_name" using 1:2 title "flow vs Throughput" with linespoints
 EOL
 )
 flow_vs_ratio_script=$(cat << EOL
 set terminal png size 640, 480
 set output "$flow_vs_ratio_png"
+set xlabel "Flow"
+set ylabel "Ratio"
 plot "$flow_data_file_name" using 1:3 title "flow vs Ratio" with linespoints
 EOL
 )
@@ -103,12 +111,16 @@ packet_rate_vs_ratio_png="offline-2-1-output/packet_rate-vs-ratio.png"
 packet_rate_vs_throughput_script=$(cat << EOL
 set terminal png size 640, 480
 set output "$packet_rate_vs_throughput_png"
+set xlabel "Packet Rate"
+set ylabel "Throughput (Mbit/s)"
 plot "$packet_rate_data_file_name" using 1:2 title "packet_rate vs Throughput" with linespoints
 EOL
 )
 packet_rate_vs_ratio_script=$(cat << EOL
 set terminal png size 640, 480
 set output "$packet_rate_vs_ratio_png"
+set xlabel "Packet Rate"
+set ylabel "Ratio"
 plot "$packet_rate_data_file_name" using 1:3 title "packet_rate vs Ratio" with linespoints
 EOL
 )
@@ -141,12 +153,16 @@ coverage_area_factor_vs_ratio_png="offline-2-1-output/coverage_area_factor-vs-ra
 coverage_area_factor_vs_throughput_script=$(cat << EOL
 set terminal png size 640, 480
 set output "$coverage_area_factor_vs_throughput_png"
+set xlabel "Coverage Area"
+set ylabel "Throughput (Mbit/s)"
 plot "$coverage_area_factor_data_file_name" using 1:2 title "coverage-area-factor vs Throughput" with linespoints
 EOL
 )
 coverage_area_factor_vs_ratio_script=$(cat << EOL
 set terminal png size 640, 480
 set output "$coverage_area_factor_vs_ratio_png"
+set xlabel "Coverage Area"
+set ylabel "Ratio"
 plot "$coverage_area_factor_data_file_name" using 1:3 title "coverage-area-factor vs Ratio" with linespoints
 EOL
 )
