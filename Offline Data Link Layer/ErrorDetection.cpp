@@ -44,7 +44,7 @@ void printDataBlock(const vector<string> &dataBlock)
 {
     for (string row : dataBlock)
     {
-        cout << row << endl;
+        std::cout << row << endl;
     }
 }
 
@@ -103,15 +103,76 @@ string insertParityBits(const string &data)
     return res;
 }
 
+string removeParityBits(const string &data)
+{
+
+    int dataLength = data.length();
+
+    int parityBitCount = calculateParityBits(dataLength);
+    int error = 0;
+    for (int i = 0; i < parityBitCount; i++)
+    {
+        int p = pow(2, i);
+        int x = 0;
+        for (int j = 0; j < data.size(); j++)
+        {
+            if (p & (j + 1))
+            {
+                char c = data[j];
+                if (c == '1')
+                {
+                    x = (x == 0) ? 1 : 0;
+                }
+            }
+        }
+        if (x == 1)
+        {
+            error += p;
+        }
+    }
+
+    string s = data;
+    if (error > 0 && error <= data.size())
+    {
+        s[error - 1] = (data[error - 1] == '0') ? '1' : '0';
+    }
+
+    std::string result;
+
+    for (int i = 0; i < s.length(); i++)
+    {
+
+        if (((i + 1) & i) != 0)
+        {
+            result += s[i];
+        }
+    }
+
+    return result;
+}
 vector<string> HammingCodeDataBlock(const vector<string> &dataBlock)
 {
 
-    vector<string> res(dataBlock.size());
+    vector<string> res;
+
     int i = 0;
-    for (string s : dataBlock)
+    for (int i = 0; i < dataBlock.size(); i++)
     {
-        res[i] = insertParityBits(s);
-        i++;
+        // cout << "debug " << i << endl;
+        res.push_back(insertParityBits(dataBlock[i]));
+    }
+    return res;
+}
+
+vector<string> HammingDecodeDataBlock(const vector<string> &dataBlock)
+{
+
+    vector<string> res;
+    int i = 0;
+
+    for (int i = 0; i < dataBlock.size(); i++)
+    {
+        res.push_back(removeParityBits(dataBlock[i]));
     }
     return res;
 }
@@ -126,15 +187,15 @@ void printWithCheckBits(const vector<string> &hammingEncodedBlock)
             if ((i & (i + 1)) == 0)
             {
                 // If i is one less than a power of two, print in green.
-                cout << "\033[32m" << hammingCode[i] << "\033[0m";
+                std::cout << "\033[32m" << hammingCode[i] << "\033[0m";
             }
             else
             {
                 // Otherwise, print normally.
-                cout << hammingCode[i];
+                std::cout << hammingCode[i];
             }
         }
-        cout << endl;
+        std::cout << endl;
     }
 }
 
@@ -174,49 +235,56 @@ string serializeColumnMajor(const std::vector<std::string> &dataBlock)
 
 std::string computeCRC(const std::string &dividend, const std::string &divisor)
 {
-    string remainder = dividend;
-    int divisorLength = divisor.length();
+	std::string remainder = dividend;
+	int divisorLength = divisor.length();
+	int dividendLength = dividend.length();
+	int i = 0;
 
-    int i = 0;
+	while (i < dividendLength - (divisorLength - 1))
+	{
+		if (remainder[i] == '1')
+		{
+			int j = 0;
+			string tempXORResult;  // Accumulate XOR results in a temporary string
 
-    for (int i = 0; i < dividend.length() - (divisorLength - 1); i++)
-    {
-        if (remainder[i] == '1')
-        {
-
-            for (int j = 0; j < divisorLength; j++)
-            {
+            while (j < divisorLength) {
                 int intDivisor = divisor[j] - '0';
                 int intRemainder = remainder[i + j] - '0';
                 int xorResult = intDivisor ^ intRemainder;
-
-                remainder[i + j] = static_cast<char>(xorResult + '0');
+                tempXORResult += to_string(xorResult);  // Store XOR result as a string
+                j++;
             }
-        }
-    }
-    return remainder.substr(dividend.length() - (divisorLength - 1));
+
+            for (int k = 0; k < tempXORResult.length(); k++) {
+                remainder[i + k] = tempXORResult[k];
+            }
+		}
+		i++;
+	}
+
+	return remainder.substr(dividendLength - (divisorLength - 1));
 }
 
 void printWithCyanRemainder(const string &dividend, const string &rem)
 {
-    cout << dividend;
+    std::cout << dividend;
 
     // Change text color to cyan
-    cout << "\x1b[36m" << rem << "\x1b[0m"; // Set text color to cyan and reset color
+    std::cout << "\x1b[36m" << rem << "\x1b[0m"; // Set text color to cyan and reset color
 
-    cout << endl;
+    std::cout << endl;
 }
 
 string corruptData(const string &input, double errorProbability)
 {
-    srand(1);
+
     string receivedFrame = input;
-    for (char &bit : receivedFrame)
+    for (int i = 0; i < receivedFrame.size(); i++)
     {
-        double randValue = static_cast<double>(rand()) / RAND_MAX;
+        double randValue = (double)(rand()) / RAND_MAX;
         if (randValue < errorProbability)
         {
-            bit = (bit == '0') ? '1' : '0';
+            receivedFrame[i] = (receivedFrame[i] == '0') ? '1' : '0';
         }
     }
     return receivedFrame;
@@ -229,14 +297,14 @@ void printCorruptedData(const string &actualData, const string &corruptedData)
         char bit = corruptedData[i];
         if (bit != actualData[i])
         {
-            cout << "\x1b[31m" << bit << "\x1b[0m"; // Set text color to red for erroneous bits
+            std::cout << "\x1b[31m" << bit << "\x1b[0m"; // Set text color to red for erroneous bits
         }
         else
         {
-            cout << bit; // Print correct bits without color
+            std::cout << bit; // Print correct bits without color
         }
     }
-    cout << endl;
+    std::cout << endl;
 }
 
 bool verifyReceivedData(const string &receivedData, const string &generatorPolynomial)
@@ -307,13 +375,30 @@ void printColoredDifference(const std::vector<std::string> &checkBitAddedDataBlo
     }
 }
 
+string generateOutputFrame(const vector<string> &removedCheckBits)
+{
+    string result;
+
+    for (int k = 0; k < removedCheckBits.size(); k++)
+    {
+        for (size_t i = 0; i < removedCheckBits[k].length(); i += 8)
+        {
+            std::string substring = removedCheckBits[k].substr(i, 8);
+            char character = static_cast<char>(stoi(substring, nullptr, 2));
+            result += character;
+        }
+    }
+    return result;
+}
+
 int main()
 {
-    string dataString = "Hamming Code";
-    int m = 2;
+    srand(1);
+    string dataString = "Computer Networks";
+    int m = 4;
     char paddingChar = '~';
-    double probability = 0.05;
-    string generatorPolynomial = "10101";
+    double probability = 0.04;
+    string generatorPolynomial = "1010111";
 
     cout << "Enter the data string: " << endl;
     getline(cin, dataString);
@@ -321,87 +406,80 @@ int main()
     cin >> m;
     cin.ignore();
     cout << "Enter generator polynomial: " << endl;
-
     getline(cin, generatorPolynomial);
-
     cout << "Enter probability: " << endl;
-
     cin >> probability;
 
     // append padding
     appendPadding(dataString, m, paddingChar);
-
-    cout << "Updated data string with padding: " << dataString << endl;
+    std::cout << "data string after padding: " << dataString << endl;
+    std::cout << endl;
 
     // create and store the data block
     vector<string> dataBlock = createDataBlock(dataString, m);
 
     // print the data block
-    cout << "Data block:" << endl;
+    std::cout << "data block (ascii code of m characters per row):" << endl;
     printDataBlock(dataBlock);
-
-    cout << endl;
+    std::cout << endl;
 
     // print the data block after adding check bits
-    cout << "Data block after adding check bits:" << endl;
+    std::cout << "data block after adding check bits:" << endl;
     vector<string> checkBitAddedDataBlock = HammingCodeDataBlock(dataBlock);
     printWithCheckBits(checkBitAddedDataBlock);
     int checkBitAddedDataBlockSize = checkBitAddedDataBlock[0].size();
-
-    cout << endl;
+    std::cout << endl;
 
     // print the data block after serializing in column major order
     string serialized = serializeColumnMajor(checkBitAddedDataBlock);
-    cout << "Serializing data block:" << endl;
-    cout << serialized << endl;
-
-    cout << endl;
+    std::cout << "data bits after column-wise serialization:" << endl;
+    std::cout << serialized << endl;
+    std::cout << endl;
 
     // prints datablock with added check sum
-    cout << "After adding checksum, data block:" << endl;
-
+    std::cout << "data bits after appending CRC checksum (sent frame):" << endl;
     int l_key = generatorPolynomial.length();
-
-    // Appends n-1 zeroes at end of data
     string appended_data = (serialized + std::string(l_key - 1, '0'));
-
     printWithCyanRemainder(serialized, computeCRC(appended_data, generatorPolynomial));
-
-    cout << endl;
-
-    string checkSum = computeCRC(appended_data, generatorPolynomial);
-
-    string serializedwithRem = serialized + computeCRC(appended_data, generatorPolynomial);
+    std::cout << endl;
 
     // print corrupted data
 
-    cout << "Corrupted Data :" << endl;
+    string checkSum = computeCRC(appended_data, generatorPolynomial);
+    string serializedwithRem = serialized + computeCRC(appended_data, generatorPolynomial);
+    std::cout << "received frame :" << endl;
     string receivedData = corruptData(serializedwithRem, probability);
-
     printCorruptedData(serializedwithRem, receivedData);
+    std::cout << endl;
 
-    cout << endl;
-
+    std::cout << "result of CRC checksum matching : ";
     if (verifyReceivedData(receivedData, generatorPolynomial))
     {
-        cout << "All ok" << endl;
+        std::cout << "no error detected" << endl;
     }
     else
     {
-        cout << "error" << endl;
+        std::cout << "error detected" << endl;
     }
 
-    cout << endl;
+    std::cout << endl;
 
+    // print after removing checksum bits, in data block format again
+    std::cout << "data bits after removing CRC checksum bits: " << endl;
     string removedCheckSum = receivedData.substr(0, receivedData.length() - checkSum.length());
-
-    cout << "Removed Checksum Bits: " << endl;
-    cout << removedCheckSum << endl;
-
     vector<string> receivedDataBlock = splitString(removedCheckSum, checkBitAddedDataBlock.size());
-    cout << endl;
-
     printColoredDifference(checkBitAddedDataBlock, receivedDataBlock);
+    std::cout << endl;
+
+    // Remove check bits
+    std::cout << "data bits after removing check bits :" << endl;
+    vector<string> removedCheckBits = HammingDecodeDataBlock(receivedDataBlock);
+    printDataBlock(removedCheckBits);
+    cout << endl;
+    std::string result = generateOutputFrame(removedCheckBits);
+
+    // Output the frame
+    std::cout << "output frame: " << result << std::endl;
 
     return 0;
 }

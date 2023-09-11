@@ -1,128 +1,49 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <string>
 using namespace std;
+// Function to perform modulo-2 division and return the remainder
 
-// Returns XOR of 'a' and 'b'
-// (both of same length)
-string xor1(string a, string b)
+std::string computeCRC(const std::string &dividend, const std::string &divisor)
 {
+	std::string remainder = dividend;
+	int divisorLength = divisor.length();
+	int dividendLength = dividend.length();
+	int i = 0;
 
-	// Initialize result
-	string result = "";
+	while (i < dividendLength - (divisorLength - 1))
+	{
+		if (remainder[i] == '1')
+		{
+			int j = 0;
+			string tempXORResult;  // Accumulate XOR results in a temporary string
 
-	int n = b.length();
+            while (j < divisorLength) {
+                int intDivisor = divisor[j] - '0';
+                int intRemainder = remainder[i + j] - '0';
+                int xorResult = intDivisor ^ intRemainder;
+                tempXORResult += to_string(xorResult);  // Store XOR result as a string
+                j++;
+            }
 
-	// Traverse all bits, if bits are
-	// same, then XOR is 0, else 1
-	for (int i = 1; i < n; i++) {
-		if (a[i] == b[i])
-			result += "0";
-		else
-			result += "1";
-	}
-	return result;
-}
-
-// Performs Modulo-2 division
-string mod2div(string dividend, string divisor)
-{
-
-	// Number of bits to be XORed at a time.
-	int pick = divisor.length();
-
-	// Slicing the dividend to appropriate
-	// length for particular step
-	string tmp = dividend.substr(0, pick);
-
-	int n = dividend.length();
-
-	while (pick < n) {
-		if (tmp[0] == '1')
-
-			// Replace the dividend by the result
-			// of XOR and pull 1 bit down
-			tmp = xor1(divisor, tmp) + dividend[pick];
-		else
-
-			// If leftmost bit is '0'.
-			// If the leftmost bit of the dividend (or the
-			// part used in each step) is 0, the step cannot
-			// use the regular divisor; we need to use an
-			// all-0s divisor.
-			tmp = xor1(std::string(pick, '0'), tmp)
-				+ dividend[pick];
-
-		// Increment pick to move further
-		pick += 1;
-	}
-
-	// For the last n bits, we have to carry it out
-	// normally as increased value of pick will cause
-	// Index Out of Bounds.
-	if (tmp[0] == '1')
-		tmp = xor1(divisor, tmp);
-	else
-		tmp = xor1(std::string(pick, '0'), tmp);
-
-	return tmp;
-}
-
-// Function used at the sender side to encode
-// data by appending remainder of modular division
-// at the end of data.
-void encodeData(string data, string key)
-{
-	int l_key = key.length();
-
-	// Appends n-1 zeroes at end of data
-	string appended_data
-		= "10011011101111";
-
-	string remainder = mod2div(appended_data, key);
-
-	// Append remainder in the original data
-	string codeword = data + remainder;
-	cout << "Remainder : " << remainder << "\n";
-	cout << "Encoded Data (Data + Remainder) :" << codeword
-		<< "\n";
-}
-// checking if the message received by receiver is correct
-// or not. If the remainder is all 0 then it is correct,
-// else wrong.
-void receiver(string data, string key)
-{
-	string currxor
-		= mod2div(data.substr(0, key.size()), key);
-	int curr = key.size();
-	while (curr != data.size()) {
-		if (currxor.size() != key.size()) {
-			currxor.push_back(data[curr++]);
+            for (int k = 0; k < tempXORResult.length(); k++) {
+                remainder[i + k] = tempXORResult[k];
+            }
 		}
-		else {
-			currxor = mod2div(currxor, key);
-		}
+		i++;
 	}
-	if (currxor.size() == key.size()) {
-		currxor = mod2div(currxor, key);
-	}
-	if (currxor.find('1') != string::npos) {
-		cout << "there is some error in data" << endl;
-	}
-	else {
-		cout << "correct message received" << endl;
-	}
+
+	return remainder.substr(dividendLength - (divisorLength - 1));
 }
-// Driver code
+
 int main()
 {
-	string data = "10011011101111";
-	string key = "101";
-	cout << "Sender side..." << endl;
-	encodeData(data, key);
+	std::string dividend = "0100100001000001011011011011110101110110000000101010011110110000011111110110101101001101111111110111100100000011111111110001110001111010001111100000001111101101111111110100011001010101100010000000"; // Your dividend
+	std::string divisor = "1010111";																																 // Your divisor (generator polynomial)
 
-	cout << "\nReceiver side..." << endl;
-	receiver(data+mod2div(data+std::string(key.size() - 1, '0'),key), key);
+	// Calculate the CRC remainder (checksum)
+	std::string remainder = computeCRC(dividend, divisor);
+
+	std::cout << "CRC Remainder (Checksum): " << remainder << std::endl;
 
 	return 0;
 }
-
-// This code is contributed by MuskanKalra1 , Mayank Sharma
